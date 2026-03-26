@@ -12,10 +12,11 @@ WORKDIR /app
 
 # Копируем скрипт обновления и docker-entrypoint
 COPY certbot/renew.sh /app/renew.sh
+COPY certbot/update-haproxy.sh /app/update-haproxy.sh
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 # Делаем скрипты исполняемыми
-RUN chmod +x /app/renew.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/renew.sh /app/update-haproxy.sh /app/docker-entrypoint.sh
 
 # Точка входа — наш entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
