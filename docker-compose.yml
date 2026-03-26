@@ -1,0 +1,34 @@
+x-network: &network
+  networks:
+    - all-net
+
+services:
+  certbot:
+    <<: [*network]
+    image: ghcr.io/adam-sizzler/certbot:${CERTBOT_VERSION:-latest}
+    container_name: certbot
+    volumes:
+      - certificate:/etc/haproxy/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - EMAIL=${EMAIL}
+      - DNS_CLOUDFLARE_API_TOKEN=${DNS_CLOUDFLARE_API_TOKEN}
+    env_file:
+      - ".env"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "[ -s /etc/haproxy/certs/${DOMAIN_NAME}.pem ]"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    profiles: [full, certbot]
+
+volumes:
+  certificate:
+    name: certificate
+    driver: local
+    external: false
+
+networks:
+  all-net:
+    driver: bridge
