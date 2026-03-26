@@ -2,10 +2,9 @@
 FROM certbot/dns-cloudflare:latest
 
 # Устанавливаем зависимости:
-#   docker-cli – для проверки наличия контейнера HAProxy
 #   openssl    – для возможной генерации dhparam
 #   socat      – для отправки команд в HAProxy Runtime API
-RUN apk add --no-cache docker-cli openssl socat
+RUN apk add --no-cache openssl socat
 
 # Создаём рабочие каталоги
 WORKDIR /app

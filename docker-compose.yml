@@ -9,7 +9,7 @@ services:
     container_name: certbot
     volumes:
       - certificate:/etc/haproxy/certs
-      - /var/run/docker.sock:/var/run/docker.sock
+      - haproxy-socket:/var/run/haproxy
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
       - EMAIL=${EMAIL}
@@ -28,7 +28,9 @@ volumes:
   certificate:
     name: certificate
     driver: local
-    external: false
+  haproxy-socket:
+    name: haproxy-socket
+    driver: local
 
 networks:
   all-net:
