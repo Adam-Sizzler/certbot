@@ -1,35 +1,37 @@
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: ${LOGGING_MAX_SIZE:-5M}
+      max-file: ${LOGGING_COUNT_FILES:-10}
+
 x-network: &network
   networks:
     - all-net
 
 services:
   certbot:
-    <<: [*network]
+    <<: [*logging, *network]
     image: ghcr.io/adam-sizzler/certbot:${CERTBOT_VERSION:-latest}
     container_name: certbot
     volumes:
-      - certificate:/etc/haproxy/certs
       - haproxy-socket:/var/run/haproxy
-    environment:
-      - DOMAIN_NAME=${DOMAIN_NAME}
-      - EMAIL=${EMAIL}
-      - DNS_CLOUDFLARE_API_TOKEN=${DNS_CLOUDFLARE_API_TOKEN}
-      - DHPARAM_ENABLED=${DHPARAM_ENABLED:-false}
+      - certificate:/etc/letsencrypt
     env_file:
       - ".env"
     healthcheck:
-      test: ["CMD", "sh", "-c", "[ -s /etc/haproxy/certs/${DOMAIN_NAME}.pem ]"]
+      test: ["CMD", "sh", "-c", "[ -n \"$$DOMAIN_NAME\" ] && [ -s /etc/letsencrypt/live/$$DOMAIN_NAME/haproxy.pem ]"]
       interval: 20s
       timeout: 5s
       retries: 3
     profiles: [full, certbot]
 
 volumes:
-  certificate:
-    name: certificate
-    driver: local
   haproxy-socket:
     name: haproxy-socket
+    driver: local
+  certificate:
+    name: certificate
     driver: local
 
 networks:

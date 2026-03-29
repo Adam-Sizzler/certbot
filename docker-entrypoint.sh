@@ -7,6 +7,11 @@ if [ -z "$DNS_CLOUDFLARE_API_TOKEN" ]; then
     exit 1
 fi
 
+if [ -z "${DOMAIN_NAME:-}" ]; then
+    echo "ERROR: DOMAIN_NAME is not set" >&2
+    exit 1
+fi
+
 # Создаём cloudflare.ini
 CLOUDFLARE_INI="/app/cloudflare.ini"
 cat > "$CLOUDFLARE_INI" <<EOF

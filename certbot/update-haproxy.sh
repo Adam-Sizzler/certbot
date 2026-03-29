@@ -2,8 +2,18 @@
 set -e
 
 LIVE_DIR="/etc/letsencrypt/live/$DOMAIN_NAME"
-HAPROXY_CERT_PATH="/etc/haproxy/certs/$DOMAIN_NAME.pem"
+HAPROXY_CERT_PATH="$LIVE_DIR/haproxy.pem"
 SOCKET_PATH="/var/run/haproxy/haproxy.sock"
+
+if [ -z "${DOMAIN_NAME:-}" ]; then
+    echo "ERROR: DOMAIN_NAME is empty" >&2
+    exit 1
+fi
+
+if [ ! -s "$LIVE_DIR/fullchain.pem" ] || [ ! -s "$LIVE_DIR/privkey.pem" ]; then
+    echo "ERROR: certificate files not found in $LIVE_DIR" >&2
+    exit 1
+fi
 
 # Обновляем файл на диске
 cat "$LIVE_DIR/fullchain.pem" "$LIVE_DIR/privkey.pem" > "$HAPROXY_CERT_PATH"

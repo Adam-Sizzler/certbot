@@ -2,10 +2,15 @@
 set -e
 
 CERT_NAME="$DOMAIN_NAME"
+LETSENCRYPT_DIR="/etc/letsencrypt"
 LIVE_DIR="/etc/letsencrypt/live/$CERT_NAME"
-HAPROXY_DIR="/etc/haproxy/certs"
-DHPARAM="$HAPROXY_DIR/dhparam.pem"
-HAPROXY_CERT_PATH="$HAPROXY_DIR/$CERT_NAME.pem"
+DHPARAM="$LETSENCRYPT_DIR/dhparam.pem"
+HAPROXY_CERT_PATH="$LIVE_DIR/haproxy.pem"
+
+if [ -z "$CERT_NAME" ]; then
+    echo "ERROR: DOMAIN_NAME is empty" >&2
+    exit 1
+fi
 
 echo "=== Certbot Universal Manager started for $CERT_NAME ==="
 
@@ -42,15 +47,19 @@ if [ ! -d "$LIVE_DIR" ] || [ ! -f "$LIVE_DIR/fullchain.pem" ]; then
     echo "Initial certificate issued"
 else
     echo "Certificate already exists — skipping initial issuance"
-    # Если combined.pem повреждён — восстанавливаем
+    # Если haproxy.pem повреждён — восстанавливаем
     if [ ! -f "$HAPROXY_CERT_PATH" ] || [ ! -s "$HAPROXY_CERT_PATH" ]; then
-        echo "combined.pem missing or empty — recreating..."
+        echo "haproxy.pem missing or empty — recreating..."
         cat "$LIVE_DIR/fullchain.pem" "$LIVE_DIR/privkey.pem" > "$HAPROXY_CERT_PATH"
         chmod 644 "$HAPROXY_CERT_PATH"
     fi
 fi
 
 # 3. Обновляем HAProxy (первичная загрузка сертификата)
+if [ ! -s "$LIVE_DIR/fullchain.pem" ] || [ ! -s "$LIVE_DIR/privkey.pem" ]; then
+    echo "ERROR: certificate files are missing in $LIVE_DIR" >&2
+    exit 1
+fi
 /app/update-haproxy.sh
 
 # 4. Бесконечный цикл обновления
