@@ -6,6 +6,7 @@ LETSENCRYPT_DIR="/etc/letsencrypt"
 LIVE_DIR="/etc/letsencrypt/live/$CERT_NAME"
 DHPARAM="$LETSENCRYPT_DIR/dhparam.pem"
 HAPROXY_CERT_PATH="$LIVE_DIR/haproxy.pem"
+RENEW_INTERVAL="${RENEW_INTERVAL:-12h}"
 
 if [ -z "$CERT_NAME" ]; then
     echo "ERROR: DOMAIN_NAME is empty" >&2
@@ -63,10 +64,10 @@ fi
 /app/update-haproxy.sh
 
 # 4. Бесконечный цикл обновления
-echo "Starting renew loop (every 24 hours)..."
+echo "Starting renew loop (every ${RENEW_INTERVAL})..."
 while true; do
     echo "[$(date)] Running certbot renew..."
     certbot renew --quiet --deploy-hook "/app/update-haproxy.sh"
-    echo "[$(date)] Sleeping 24 hours..."
-    sleep 24h
+    echo "[$(date)] Sleeping ${RENEW_INTERVAL}..."
+    sleep "${RENEW_INTERVAL}"
 done
